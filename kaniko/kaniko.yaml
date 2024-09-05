@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko-build
+spec:
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+      args:
+        - "--dockerfile=/workspace/.cicd/Dockerfile"
+        - "--context=git://<GITHUB_REPOSITORY>.git#main"
+        - "--destination=<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/<IMAGE_NAME>:latest" ## -- Use this to ECR
+        - "--destination=docker.io/<DOCKERHUB_USERNAME>/<IMAGE_NAME>:latest"                      ## -- Use this to DockerHub
+        - "--destination=ghcr.io/<GITHUB_USERNAME>/<IMAGE_NAME>:latest"                           ## -- Use this to GitHub Registry
+      volumeMounts:
+        - name: secret-volume
+          mountPath: /kaniko/.docker
+  restartPolicy: Never
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: dockerhub-secret
